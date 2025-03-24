@@ -1,0 +1,14 @@
+.DS_Store
+.idea/
+.calva/
+.lsp/
+.clj-kondo/
+.nrepl-port
+target/
+.hgignore
+.hg/
+*.class
+*.jar
+.cpcache/
+.lein-*
+profiles.clj
