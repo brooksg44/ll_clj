@@ -30,7 +30,7 @@
 (declare scan scan-and)
 
 ;; Simplified scanner functions
-(defn scan-in [rung instructions row column count]
+(defn scan-in [rung instructions row column element-count]
   (let [row-content (get rung row)
         is-not (and row-content (= (get row-content column) \/))
         start-idx (if is-not (inc column) column)
@@ -42,9 +42,9 @@
       (swap! instructions conj ["in" name])
       (when is-not
         (swap! instructions conj ["not"]))
-      (scan-and rung instructions row (inc end-idx) (inc count)))))
+      (scan-and rung instructions row (inc end-idx) (inc element-count)))))
 
-(defn scan-out [rung instructions row column count]
+(defn scan-out [rung instructions row column element-count]
   (let [row-content (get rung row)
         is-not (and row-content (= (get row-content column) \/))
         start-idx (if is-not (inc column) column)
@@ -58,7 +58,7 @@
       (swap! instructions conj ["out" name])
       (scan rung instructions row (inc end-idx)))))
 
-(defn scan-or [rung instructions row column count]
+(defn scan-or [rung instructions row column element-count]
   (let [row-content (get rung row)
         end (when row-content (.indexOf ^String row-content "+" (inc column)))
         next-row (inc row)]
@@ -66,15 +66,15 @@
       (when (< next-row (count rung))
         (scan rung instructions next-row column 0)
         (swap! instructions conj ["or"]))
-      (scan-and rung instructions row (inc end) (inc count)))))
+      (scan-and rung instructions row (inc end) (inc element-count)))))
 
-(defn scan-and [rung instructions row column count]
-  (when (> count 1)
+(defn scan-and [rung instructions row column element-count]
+  (when (> element-count 1)
     (swap! instructions conj ["and"]))
-  (scan rung instructions row column count))
+  (scan rung instructions row column element-count))
 
-(defn scan [rung instructions row column & [count]]
-  (let [count (or count 0)
+(defn scan [rung instructions row column & [element-count]]
+  (let [element-count (or element-count 0)
         row-content (get rung row)]
     (when row-content
       (loop [col column]
@@ -82,9 +82,9 @@
           (let [ch (get row-content col)]
             (cond
               (= ch \-) (recur (inc col))
-              (= ch \[) (scan-in rung instructions row (inc col) count)
-              (= ch \() (scan-out rung instructions row (inc col) count)
-              (= ch \+) (scan-or rung instructions row col count)
+              (= ch \[) (scan-in rung instructions row (inc col) element-count)
+              (= ch \() (scan-out rung instructions row (inc col) element-count)
+              (= ch \+) (scan-or rung instructions row col element-count)
               (= ch \space) (recur (inc col))  ;; Skip spaces
               :else (do
                       (println "Unknown character:" ch)
